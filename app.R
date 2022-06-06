@@ -1,6 +1,32 @@
-library(shiny)
+#
+# This is a Shiny web application. You can run the application by clicking
+# the 'Run App' button above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
 
-# Define UI for data upload app ----
+library(shiny)
+library(tibble)
+library(ggplot2)
+
+library(ggpubr)
+theme_set(theme_pubr())
+
+# https://rstudio.github.io/shinythemes/
+
+library(reticulate)
+use_python('/usr/bin/python3')
+
+setwd('/home/alisson/work/github_chiquitto_ProkaORFShiny')
+
+orf.script = 'orf_finder.py'
+orf.result <- source_python(orf.script)
+
+sample.orf.file = '/home/alisson/work/github_chiquitto_ProkaORFShiny/samples/Seq_Anotacao1.fa'
+
+# Define UI for application that draws a histogram
 ui <- fluidPage(
   
   # App title ----
@@ -13,54 +39,27 @@ ui <- fluidPage(
     sidebarPanel(
       
       # Input: Select a file ----
-      fileInput("file1", "Choose CSV File",
-                multiple = FALSE,
-                accept = c("text/csv",
-                           "text/comma-separated-values,text/plain",
-                           ".csv")),
+      fileInput("file1", "Choose fasta File"),
       
       # Horizontal line ----
       tags$hr(),
-      
-      # Input: Checkbox if file has header ----
-      checkboxInput("header", "Header", TRUE),
-      
-      # Input: Select separator ----
-      radioButtons("sep", "Separator",
-                   choices = c(Comma = ",",
-                               Semicolon = ";",
-                               Tab = "\t"),
-                   selected = ","),
-      
-      # Input: Select quotes ----
-      radioButtons("quote", "Quote",
-                   choices = c(None = "",
-                               "Double Quote" = '"',
-                               "Single Quote" = "'"),
-                   selected = '"'),
-      
-      # Horizontal line ----
-      tags$hr(),
-      
-      # Input: Select number of rows to display ----
-      radioButtons("disp", "Display",
-                   choices = c(Head = "head",
-                               All = "all"),
-                   selected = "head")
+      sliderInput('tmin', "Tamanho mínimo da orf", 15, 200,15)
       
     ),
     
     # Main panel for displaying outputs ----
     mainPanel(
       
+      # Output: Histogram ----
+      plotOutput(outputId = "distPlot1"),
+      
+      plotOutput(outputId = "distPlot2"),
+      
       # Output: Verbatim text for data summary ----
       verbatimTextOutput("summary"),
       
       # Output: Data file ----
-      tableOutput("contents"),
-      
-      # Output: Histogram ----
-      plotOutput(outputId = "distPlot")
+      tableOutput("contents")
       
     )
     
@@ -70,49 +69,92 @@ ui <- fluidPage(
 # Define server logic to read selected file ----
 server <- function(input, output) {
   
-  datasetInput <- reactive({
+  getDfOrf <- reactive({
+    return (open.df(sample.orf.file , input$tmin))
+    
     inFile <- input$file1
-    if (is.null(inFile)) return(NULL)
+    if (is.null(inFile)) return (NULL)
     
-    df <- read.csv(inFile$datapath,
-                   header = TRUE, # input$header,
-                   sep = input$sep,
-                   quote = input$quote)
-    df
+    tminorf <- input$tmin
+    print(paste0('Tamanho da orf: ', tminorf))
     
-    #data <- read.csv(inFile$datapath, header = TRUE)
-    #data
+    res.table <- open.df(inFile$datapath, tminorf)
+    
+    return (res.table)
   })
-  
-  #req(input$file1)
-  
-  # df <- read.csv(input$file1$datapath,
-  #                header = input$header,
-  #                sep = input$sep,
-  #                quote = input$quote)
   
   # Generate a summary of the dataset ----
   output$summary <- renderPrint({
-    # dataset <- df
-    summary(datasetInput())
+    df.orf <- getDfOrf()
+    if(is.null(df.orf)) return (NULL)
+    
+    summary(df.orf, digits = 2)
   })
   
-  # Show the first "n" observations ----
   output$contents <- renderTable({
-    head(datasetInput(), n = 10)
+    df.orf <- getDfOrf()
+    if(is.null(df.orf)) return (NULL)
+    
+    return (df.orf)
+    
+    df <- as.data.frame( do.call(cbind, lapply(df.orf, summary, digits = 2) ))
+    df
+  }, rownames = TRUE, digits = 2)
+  
+  output$distPlot1 <- renderPlot({
+    df.orf <- getDfOrf()
+    
+    if(is.null(df.orf)) return (NULL)
+    
+    h = hist(df.orf$orf_len, plot=FALSE)
+    h$density = h$counts / sum(h$counts) * 100
+    
+    plot(
+      h,
+      type = "p",
+      main = "Coverage Density",
+      ylab = "Density (%)",
+      xlab = "ORF Coverage (%)",
+      freq = FALSE
+    )
   })
   
-  output$distPlot <- renderPlot({
-    x    <- datasetInput()
-    bins <- seq(min(x), max(x), length.out = 10)
+  output$distPlot2 <- renderPlot({
+    df.orf <- getDfOrf()
     
-    hist(x$A, breaks = bins, col = "#75AADB", border = "white",
-         xlab = "Waiting time to next eruption (in mins)",
-         main = "Histogram of waiting times")
+    if(is.null(df.orf)) return (NULL)
     
+    # plot(
+    #   density(df.orf$cobertura),
+    #   main = "Coverage Density",
+    #   ylab = "Density (count)",
+    #   xlab = "ORF Coverage (%)",
+    #   freq = FALSE
+    # )
+    
+    a <- ggplot(df.orf, aes(x = orf_len))
+    b <- a +
+      geom_density(aes(y = ..density..), alpha = 0.2, fill = "#FF0000")
+      # geom_density(aes(y = (..count..)/sum(..count..)), alpha = 0.5, fill = "#FF0000") +
+      # scale_y_continuous(labels = scales::percent)
+      # scale_y_continuous(labels = function(x) paste0(x, "%"))
+    
+    
+    return (b)
   })
   
 }
 
-# Create Shiny app ----
-shinyApp(ui, server)
+open.df <- function(datapath, tmin) {
+  res.table <- print_csv(datapath , tmin)
+  
+  # res.table <- head(res.table, n = 10)
+  
+  res.table <- res.table[, -which(names(res.table) %in% c("orf", "orf_nt", "orf_aa"))]
+  res.table$cobertura = res.table$orf_len / res.table$seq_len * 100
+  
+  return (res.table)
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)

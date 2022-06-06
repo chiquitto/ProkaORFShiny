@@ -70,19 +70,19 @@ def translate(seq):
     protein += table[codon]
   return protein
 
-def seq_append(strand, frame, orf, pos_start, seq_len, seq):
-  seq_len = len(seq)
+def seq_append(strand, frame, orf, pos_start, orf_len, orf_nt):
+  orf_len = len(orf_nt)
   return {
       "strand": strand,
       "frame": frame + 1,
       "orf": orf,
       "pos_start": pos_start + 1,
-      "pos_end": pos_start + seq_len,
-      "len": seq_len,
-      "seq": seq
+      "pos_end": pos_start + orf_len,
+      "orf_len": orf_len,
+      "orf_nt": orf_nt
   }
 
-def find_protein(record,min_codons):
+def find_protein(record, min_codons):
   start_codon = "ATG"
   stop_codon = ["TAA", "TGA", "TAG"]
   min_nt = min_codons * 3
@@ -152,15 +152,17 @@ def print_text(filename,min_codons):
 def print_csv(filename,min_codons):
   with io.StringIO() as csvfile:
     fieldnames = ["strand", "frame", "orf",
-                  "pos_start", "pos_end", "len", "seq", "pt"]
+                  "pos_start", "pos_end", "seq_len", "orf_len", "orf_nt", "orf_aa"]
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
 
     for record in read_fasta(filename):
-      seqs1 = find_protein(record,min_codons)
+      seqs1 = find_protein(record, min_codons)
+      record_len = len(record['seq'])
       
       for seq1 in seqs1:
-        seq1["pt"] = translate(seq1["seq"])
+        seq1["seq_len"] = record_len
+        seq1["orf_aa"] = translate(seq1["orf_nt"])
         writer.writerow(seq1)
     #print(csvfile.getvalue())
     with open(filename.replace('fa','csv'),'w') as f:
@@ -171,12 +173,11 @@ def print_csv(filename,min_codons):
 
 """# rodando para um caso de teste"""
 
-#filename = '/content/drive/MyDrive/Programação bioinfo/Seq_Anotacao.fa'
+#filename = '/home/alisson/work/github_chiquitto_ProkaORFShiny/samples/Seq_Anotacao1.fa'
 #min_codons = 15
 # start_codon = "ATG"
 # stop_codon = ["TAA", "TGA", "TAG"]
 
 # Escrevendo csv
 
-#df = print_csv(filename,min_codons)
-#df
+#print( print_csv(filename,min_codons) )
