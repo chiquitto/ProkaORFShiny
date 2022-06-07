@@ -24,7 +24,7 @@ setwd('/home/alisson/work/github_chiquitto_ProkaORFShiny')
 orf.script = 'orf_finder.py'
 orf.result <- source_python(orf.script)
 
-sample.orf.file = '/home/alisson/work/github_chiquitto_ProkaORFShiny/samples/Seq_Anotacao1.fa'
+sample.orf.file = '/home/alisson/work/github_chiquitto_ProkaORFShiny/samples/Random1.fa'
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -101,12 +101,13 @@ server <- function(input, output) {
     df
   }, rownames = TRUE, digits = 2)
   
+  # ORF Coverage
   output$distPlot1 <- renderPlot({
     df.orf <- getDfOrf()
     
     if(is.null(df.orf)) return (NULL)
     
-    h = hist(df.orf$orf_len, plot=FALSE)
+    h = hist(df.orf$cobertura, plot=FALSE)
     h$density = h$counts / sum(h$counts) * 100
     
     plot(
@@ -119,6 +120,7 @@ server <- function(input, output) {
     )
   })
   
+  # ORF size
   output$distPlot2 <- renderPlot({
     df.orf <- getDfOrf()
     
@@ -147,10 +149,11 @@ server <- function(input, output) {
 
 open.df <- function(datapath, tmin) {
   res.table <- print_csv(datapath , tmin)
+  # View(res.table)
   
-  # res.table <- head(res.table, n = 10)
+  # res.table <- head(res.table, n = 100)
   
-  res.table <- res.table[, -which(names(res.table) %in% c("orf", "orf_nt", "orf_aa"))]
+  res.table <- res.table[, -which(names(res.table) %in% c("seq_id", "orf", "orf_nt", "orf_aa"))]
   res.table$cobertura = res.table$orf_len / res.table$seq_len * 100
   
   return (res.table)

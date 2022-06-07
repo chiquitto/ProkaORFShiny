@@ -88,7 +88,9 @@ def find_protein(record, min_codons):
   min_nt = min_codons * 3
   seqs = []
 
-  for strand, record_seq in [(1, record["seq"]), (-1, reversed_complement(record["seq"]))]:
+  record_seq = record["seq"].upper()
+
+  for strand, record_seq in [(1, record_seq), (-1, reversed_complement(record_seq))]:
     record_seq_len = len(record_seq)
     
     # iterate over ORFs
@@ -152,15 +154,17 @@ def print_text(filename,min_codons):
 def print_csv(filename,min_codons):
   with io.StringIO() as csvfile:
     fieldnames = ["strand", "frame", "orf",
-                  "pos_start", "pos_end", "seq_len", "orf_len", "orf_nt", "orf_aa"]
+                  "pos_start", "pos_end", "seq_pos", "seq_id", "seq_len", "orf_len", "orf_nt", "orf_aa"]
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
 
-    for record in read_fasta(filename):
+    for (seq_pos, record) in enumerate(read_fasta(filename)):
       seqs1 = find_protein(record, min_codons)
       record_len = len(record['seq'])
       
       for seq1 in seqs1:
+        seq1["seq_pos"] = seq_pos
+        seq1["seq_id"] = record["id"]
         seq1["seq_len"] = record_len
         seq1["orf_aa"] = translate(seq1["orf_nt"])
         writer.writerow(seq1)
@@ -173,7 +177,7 @@ def print_csv(filename,min_codons):
 
 """# rodando para um caso de teste"""
 
-#filename = '/home/alisson/work/github_chiquitto_ProkaORFShiny/samples/Seq_Anotacao1.fa'
+#filename = '/home/alisson/work/github_chiquitto_ProkaORFShiny/samples/Random1.fa'
 #min_codons = 15
 # start_codon = "ATG"
 # stop_codon = ["TAA", "TGA", "TAG"]
