@@ -4,12 +4,8 @@ library(dplyr)
 # install.packages("chromoMap")
 library(chromoMap)
 
-#library(ggplot2)
-
 library(reticulate)
 use_python('/usr/bin/python3')
-
-# setwd('/home/alisson/work/github_chiquitto_ProkaORFShiny')
 
 orf.script = 'orf_finder.py'
 orf.result <- source_python(orf.script)
@@ -36,6 +32,7 @@ for (row in 1:nrow(tmp)) {
   
   chr.data <- rbind(chr.data, data.frame(chr_name = chr_name, start = 1, end = seq_len))
 }
+rm(tmp)
 
 anno.data <- data.frame(elem_name = character(), chr_name = character(),
                         elem_start = numeric(), elem_end = numeric())
@@ -49,3 +46,5 @@ for (row in 1:nrow(res.table)) {
 }
 
 chromoMap(list(chr.data), list(anno.data), segment_annotation=T)
+
+

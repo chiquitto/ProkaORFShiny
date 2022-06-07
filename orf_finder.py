@@ -168,9 +168,10 @@ def print_csv(filename,min_codons):
         seq1["seq_len"] = record_len
         seq1["orf_aa"] = translate(seq1["orf_nt"])
         writer.writerow(seq1)
+    
     #print(csvfile.getvalue())
-    with open(filename.replace('fa','csv'),'w') as f:
-      f.write(csvfile.getvalue())
+    # with open(filename.replace('fa','csv'),'w') as f:
+    #  f.write(csvfile.getvalue())
     return pd.read_csv(StringIO(csvfile.getvalue()))
 
 #print_csv()
