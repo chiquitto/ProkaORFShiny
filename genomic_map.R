@@ -1,34 +1,68 @@
-# R genomic map
-# install.packages("chromoMap")
-library(chromoMap)
+library(karyoploteR)
 
 genomic_map <- function(df.orf) {
-  tmp <- df.orf %>%
+  chr.name <- function(df) {
+    return (paste0("Seq", df$seq_pos, "[", df$strand, ",", df$frame, "]"))
+  }
+  
+  # Sequence data
+  
+  seq.df <- df.orf %>%
     group_by(seq_pos, strand, frame) %>%
     summarise(
       seq_len = max(seq_len)
     )
   
-  chr.data <- data.frame(chr_name = character(), start = numeric(), end = numeric())
-  for (row in 1:nrow(tmp)) {
-    chr_name <- paste0("Seq", tmp[row, "seq_pos"], "[", tmp[row, "strand"], ",", tmp[row, "frame"], "]")
-    seq_len <- tmp[row, "seq_len"]
-    
-    chr.data <- rbind(chr.data, data.frame(chr_name = chr_name, start = 1, end = seq_len))
+  chr.data <- c()
+  end.data <- c()
+  for (row in 1:nrow(seq.df)) {
+    chr.data[row] <- chr.name(seq.df[row,])
+    end.data[row] <- seq.df[row, "seq_len"]
   }
-  rm(tmp)
+  start.data = rep(1, row)
+  custom.genome <- toGRanges(data.frame(chr=chr.data, start=start.data, end=end.data))
   
-  anno.data <- data.frame(elem_name = character(), chr_name = character(),
-                          elem_start = numeric(), elem_end = numeric())
+  # Cytobands data
+  
+  pos <- list()
+  chr.data <- c()
+  start.data <- c()
+  end.data <- c()
+  name.data <- c()
+  gieStain.data <- c()
+  i <- 1
+  
   for (row in 1:nrow(df.orf)) {
-    chr_name <- paste0("Seq", df.orf[row, "seq_pos"], "[", df.orf[row, "strand"], ",", df.orf[row, "frame"], "]")
-    elem_name <- paste0(chr_name, df.orf[row, "pos_start"], "-", df.orf[row, "pos_end"])
+    key <- chr.name(df.orf[row,])
     
-    anno.data <- rbind(anno.data, data.frame(
-      elem_name = elem_name, chr_name = chr_name,
-      elem_start = df.orf[row, "pos_start"], elem_end = df.orf[row, "pos_end"]))
+    if (is.null(pos[[key]])) {
+      pos[key] <- 0
+      
+      chr.data[i] <- chr.name(df.orf[row,])
+      start.data[i] <- 1
+      end.data[i] <- df.orf[row, "seq_len"]
+      name.data[i] <- paste0(chr.data[row], "nnn")
+      gieStain.data[i] <- "gpos25"
+      i <- i + 1
+    }
+    
+    chr.data[i] <- chr.name(df.orf[row,])
+    start.data[i] <- df.orf[row, "pos_start"]
+    end.data[i] <- df.orf[row, "pos_end"]
+    name.data[i] <- paste0(chr.data[row], "orf")
+    gieStain.data[i] <- "acen"
+    
+    i = i + 1
   }
+  custom.cytobands <- toGRanges(data.frame(chr=chr.data,
+                                           start=start.data,
+                                           end=end.data,
+                                           name=name.data,
+                                           gieStain=gieStain.data))
   
-  return (chromoMap(list(chr.data), list(anno.data)))
-
+  pp <- getDefaultPlotParams(plot.type=6)
+  # pp$leftmargin <- 0.15
+  kp <- plotKaryotype(genome = custom.genome, cytobands = custom.cytobands, plot.type=6, plot.params = pp)
+  
+  return (kp)
 }

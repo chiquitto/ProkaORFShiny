@@ -12,8 +12,6 @@ library(shiny)
 library(ggplot2)
 library(dplyr)
 
-library(chromoMap)
-
 # library(ggpubr)
 # theme_set(theme_pubr())
 
@@ -62,7 +60,7 @@ ui <- fluidPage(
       # Output: Histogram ----
       plotOutput(outputId = "distPlot1"),
       
-      chromoMapOutput(outputId = "distPlot2"),
+      plotOutput(outputId = "distPlot2"),
       
       # Output: Verbatim text for data summary ----
       verbatimTextOutput("summary"),
@@ -152,14 +150,13 @@ server <- function(input, output) {
   })
   
   # ORF size
-  output$distPlot2 <- renderChromoMap({
+  output$distPlot2 <- renderPlot({
     df.orf <- getDfOrfFiltrado()
 
     if(is.null(df.orf)) return (NULL)
 
-    chromoMap("~/work/github_chiquitto_ProkaORFShiny/samples/chr_file_without_centromere.txt",
-              "~/work/github_chiquitto_ProkaORFShiny/samples/annotation_pos.txt")
-    # genomic_map(df.orf)
+    return (genomic_map(df.orf))
+    
   })
   
 }
