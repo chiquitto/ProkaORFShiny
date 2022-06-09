@@ -73,4 +73,8 @@ custom.cytobands <- toGRanges(data.frame(chr=chr.data, start=start.data, end=end
 
 pp <- getDefaultPlotParams(plot.type=6)
 pp$leftmargin <- 0.15
-kp <- plotKaryotype(genome = custom.genome, cytobands = custom.cytobands, plot.type=6, plot.params = pp)
+pp$data2outmargin <- 30
+kp <- plotKaryotype(genome = custom.genome, cytobands = custom.cytobands,
+                    plot.type=6, plot.params = pp)
+kpAddBaseNumbers(kp, tick.dist = 1000, add.units = TRUE, cex = 0.75)
+kpAddMainTitle(kp, "Epigenetic Regulation in K562")

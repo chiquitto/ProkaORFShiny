@@ -1,8 +1,14 @@
 library(karyoploteR)
 
-genomic_map <- function(df.orf) {
+# TODO
+# see Gviz package for visualization of ORFs <https://ivanek.github.io/Gviz/>
+# see paper with example charts <https://www.nature.com/articles/s41467-021-24617-4 charts>
+
+genomic_map <- function(df.orf, mainTitle=NA) {
   chr.name <- function(df) {
-    return (paste0("Seq", df$seq_pos, "[", df$strand, ",", df$frame, "]"))
+    # return (paste0("Seq", df$seq_pos, "[", df$strand, ",", df$frame, "]"))
+    strand <- if(df$strand==1) "+" else "-"
+    return (paste0("Frame", df$frame, strand))
   }
   
   # Sequence data
@@ -62,7 +68,10 @@ genomic_map <- function(df.orf) {
   
   pp <- getDefaultPlotParams(plot.type=6)
   # pp$leftmargin <- 0.15
+  pp$data2outmargin <- 30
   kp <- plotKaryotype(genome = custom.genome, cytobands = custom.cytobands, plot.type=6, plot.params = pp)
+  if (!is.null(mainTitle)) kpAddMainTitle(kp, paste0("Sequence ID: ", mainTitle) ) # cex=2
+  kpAddBaseNumbers(kp, tick.dist = 1000, add.units = TRUE, cex = 0.75)
   
   return (kp)
 }
