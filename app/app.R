@@ -19,8 +19,11 @@ library(dplyr)
 
 # https://rstudio.github.io/shinythemes/
 
+# https://cran.r-project.org/web/packages/reticulate/vignettes/versions.html
 library(reticulate)
 use_python('/usr/bin/python3')
+# use_virtualenv("~/myenv")
+# use_condaenv("myenv")
 
 # setwd('/home/alisson/work/github_chiquitto_ProkaORFShiny')
 
