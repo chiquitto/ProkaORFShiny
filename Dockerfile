@@ -20,6 +20,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY Rprofile.site /etc/R
 ENV _R_SHLIB_STRIP_=true
 
+# RUN echo "local(options(shiny.port = 3838, shiny.host = '0.0.0.0'))" > /usr/lib/R/etc/Rprofile.site
+# RUN echo "local(options(shiny.port = 3838, shiny.host = '0.0.0.0'))" > /etc/Rprofile.site
+
 RUN addgroup --system pouser && adduser --system --ingroup pouser pouser
 WORKDIR /home/pouser
 
@@ -33,4 +36,4 @@ USER pouser
 
 EXPOSE 3838
 
-CMD ["R", "-e", "shiny::runApp('/home/pouser/app')"]
+CMD ["R", "-e", "shiny::runApp('/home/pouser/app', port = 3838, host = '0.0.0.0')"]

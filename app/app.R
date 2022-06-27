@@ -88,8 +88,7 @@ server <- function(input, output) {
   
   getDfOrf <- reactive({
     # print("getDfOrf()")
-    
-    return (open.df(sample.orf.file , input$tmin))
+    # return (open.df(sample.orf.file , input$tmin))
     
     inFile <- input$file1
     if (is.null(inFile)) return (NULL)
@@ -104,8 +103,7 @@ server <- function(input, output) {
   
   getAcgtDf <- reactive({
     # print("getAcgtDf()")
-    
-    return (open.acgt.df(sample.orf.file))
+    # return (open.acgt.df(sample.orf.file))
     
     inFile <- input$file1
     # if (is.null(inFile)) return (NULL)

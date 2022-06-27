@@ -25,7 +25,7 @@ OR
 Run container in background and print container ID
 
 ```bash
-docker run -d --rm -p 8080:3838 \
+docker run -d --rm --name prokaorf -p 8080:3838 \
     -v /srv/shinyapps/:/srv/shiny-server/ \
     -v /srv/shinylog/:/var/log/shiny-server/ \
     prokaorf:v1
@@ -44,7 +44,7 @@ docker logs prokaorf:v1
 ## Open terminal from container
 
 ```bash
-sudo docker run -it --rm prokaorf:v1 bash
+docker run -it --rm --name prokaorf prokaorf:v1 bash
 ```
 
 ## Useful links (for developers)
