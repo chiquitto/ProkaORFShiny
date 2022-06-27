@@ -19,8 +19,11 @@ library(dplyr)
 
 # https://rstudio.github.io/shinythemes/
 
+# https://cran.r-project.org/web/packages/reticulate/vignettes/versions.html
 library(reticulate)
 use_python('/usr/bin/python3')
+# use_virtualenv("~/myenv")
+# use_condaenv("myenv")
 
 # setwd('/home/alisson/work/github_chiquitto_ProkaORFShiny')
 
@@ -85,8 +88,7 @@ server <- function(input, output) {
   
   getDfOrf <- reactive({
     # print("getDfOrf()")
-    
-    return (open.df(sample.orf.file , input$tmin))
+    # return (open.df(sample.orf.file , input$tmin))
     
     inFile <- input$file1
     if (is.null(inFile)) return (NULL)
@@ -101,8 +103,7 @@ server <- function(input, output) {
   
   getAcgtDf <- reactive({
     # print("getAcgtDf()")
-    
-    return (open.acgt.df(sample.orf.file))
+    # return (open.acgt.df(sample.orf.file))
     
     inFile <- input$file1
     # if (is.null(inFile)) return (NULL)
